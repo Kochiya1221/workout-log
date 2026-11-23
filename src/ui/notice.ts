@@ -51,3 +51,23 @@ export function runSafely(task: () => Promise<void>, message: string): void {
     showError(message);
   });
 }
+
+/** 新しい版があることを知らせる（[更新] を押すと onUpdate。同時に1つだけ）。 */
+export function showUpdateNotice(onUpdate: () => void): void {
+  const container = noticeArea();
+  if (container.querySelector('.update-notice')) {
+    return;
+  }
+  const button = el('button', { type: 'button', className: 'primary notice-action' }, ['更新']);
+  button.addEventListener('click', () => {
+    button.disabled = true;
+    button.textContent = '更新中…';
+    onUpdate();
+  });
+  container.append(
+    el('div', { className: 'notice update-notice', role: 'status' }, [
+      el('span', { className: 'notice-text' }, ['新しいバージョンがあります']),
+      button,
+    ]),
+  );
+}

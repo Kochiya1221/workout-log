@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- 青地（角丸なし。iPhone が自動で角を丸める） -->
+  <rect width="512" height="512" fill="#2563eb"/>
+  <!-- 白いダンベル。中心から半径 205px（マスク用の安全領域）の内側に収める -->
+  <g fill="#ffffff">
+    <rect x="180" y="236" width="152" height="40" rx="8"/>
+    <rect x="136" y="148" width="44" height="216" rx="14"/>
+    <rect x="332" y="148" width="44" height="216" rx="14"/>
+    <rect x="96" y="196" width="34" height="120" rx="10"/>
+    <rect x="382" y="196" width="34" height="120" rx="10"/>
+  </g>
+</svg>

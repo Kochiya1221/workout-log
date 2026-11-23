@@ -15,6 +15,7 @@ import {
   createSettingsStore,
   type SettingsStore,
 } from './storage/settingsStore';
+import { registerServiceWorker } from './pwa/registerServiceWorker';
 import { createGitHubClient } from './sync/githubClient';
 import { runSync } from './sync/syncEngine';
 import { createSyncScheduler } from './sync/syncScheduler';
@@ -137,3 +138,5 @@ async function main(): Promise<void> {
 }
 
 void main();
+// アプリ本体をキャッシュしてオフラインでも開けるようにする（本番ビルドのみ）
+void registerServiceWorker();

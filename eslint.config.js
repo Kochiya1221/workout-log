@@ -10,7 +10,8 @@ export default tseslint.config(
     languageOptions: {
       globals: globals.browser,
       parserOptions: {
-        projectService: true,
+        // ブラウザ用・ビルド用（Node）・Service Worker 用で型設定を分けている
+        project: ['./tsconfig.json', './tsconfig.node.json', './src/sw/tsconfig.json'],
         tsconfigRootDir: import.meta.dirname,
       },
     },
