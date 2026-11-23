@@ -12,7 +12,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "build": "npm run typecheck && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "report": "vite build -c tools/weekly-report/vite.config.ts --logLevel error && node tools/weekly-report/dist/cli.js"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
