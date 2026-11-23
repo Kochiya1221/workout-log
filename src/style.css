@@ -308,3 +308,44 @@ button.danger {
 .history-edit-fields .form-buttons {
   margin-top: 0;
 }
+
+/* ---- お知らせ（エラー・警告） ---- */
+.notices {
+  max-width: 560px;
+  margin: 0 auto;
+  display: grid;
+  gap: 8px;
+}
+
+.notices:not(:empty) {
+  margin-bottom: 12px;
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+}
+
+.notice-text {
+  flex: 1;
+}
+
+.error-notice {
+  border: 1px solid var(--danger);
+  color: var(--danger);
+}
+
+.warning-notice {
+  border: 1px solid #d97706;
+  color: #d97706;
+}
+
+.notice-close {
+  min-height: 32px;
+  padding: 0 10px;
+  border: none;
+}

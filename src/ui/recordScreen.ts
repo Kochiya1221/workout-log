@@ -5,6 +5,7 @@ import { findPreviousSession, suggestInitialValues } from '../domain/previousVal
 import { createSetLog, nextSetNo, setsOf, validateSetInput, type SetLog } from '../domain/setLog';
 import type { ExerciseRepository, SetLogRepository } from '../storage/repository';
 import { el } from './dom';
+import { SAVE_ERROR, runSafely } from './notice';
 
 /** タブを切り替えて戻っても保持する選択（再読み込みで初期化される）。 */
 const selection: { date: string; exerciseId: string | null } = {
@@ -166,7 +167,7 @@ export async function mountRecordScreen(
     ]);
     form.addEventListener('submit', (event) => {
       event.preventDefault();
-      void submit(exerciseId);
+      runSafely(() => submit(exerciseId), SAVE_ERROR);
     });
     return form;
   }

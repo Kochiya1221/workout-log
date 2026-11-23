@@ -3,6 +3,7 @@ import { buildHistory, type HistoryEntry } from '../domain/history';
 import { deleteSetLog, updateSetLog, validateSetInput, type SetLog } from '../domain/setLog';
 import type { ExerciseRepository, SetLogRepository } from '../storage/repository';
 import { el } from './dom';
+import { SAVE_ERROR, runSafely } from './notice';
 
 interface EditState {
   id: string;
@@ -52,9 +53,8 @@ export async function mountHistoryScreen(
     if (!window.confirm(`${label}を削除しますか？`)) {
       return;
     }
-    for (const changed of deleteSetLog(sets, s.id, now())) {
-      await repos.sets.put(changed);
-    }
+    // 削除と番号の詰め直しを、まとめて保存する（全部成功か全部失敗）
+    await repos.sets.putMany(deleteSetLog(sets, s.id, now()));
     sets = await repos.sets.list();
     if (editing?.id === s.id) {
       editing = null;
@@ -102,7 +102,7 @@ export async function mountHistoryScreen(
     ]);
     form.addEventListener('submit', (event) => {
       event.preventDefault();
-      void save(s, edit);
+      runSafely(() => save(s, edit), SAVE_ERROR);
     });
     return form;
   }
@@ -117,7 +117,7 @@ export async function mountHistoryScreen(
     });
     const del = el('button', { type: 'button', className: 'danger' }, ['削除']);
     del.addEventListener('click', () => {
-      void remove(s, entry);
+      runSafely(() => remove(s, entry), SAVE_ERROR);
     });
     return el('li', {}, [
       el('span', { className: 'set-no' }, [String(s.setNo)]),

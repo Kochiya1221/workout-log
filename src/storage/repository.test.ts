@@ -24,6 +24,16 @@ describe('createMemoryRepository', () => {
     expect(list.find((e) => e.id === 'id-1')?.deletedAt).toBe(T2);
   });
 
+  it('putMany でまとめて保存する', async () => {
+    const repo = createMemoryRepository<Exercise>();
+    await repo.putMany([
+      createExercise({ name: 'テスト種目A', bodyPart: 'chest' }, { id: 'id-1', now: T1 }),
+      createExercise({ name: 'テスト種目B', bodyPart: 'legs' }, { id: 'id-2', now: T1 }),
+    ]);
+    await repo.putMany([]);
+    expect((await repo.list()).map((e) => e.id)).toEqual(['id-1', 'id-2']);
+  });
+
   it('インスタンスごとに別の保存先', async () => {
     const r1 = createMemoryRepository<Exercise>();
     const r2 = createMemoryRepository<Exercise>();

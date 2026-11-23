@@ -10,6 +10,7 @@ import {
 } from '../domain/exercise';
 import type { ExerciseRepository } from '../storage/repository';
 import { el } from './dom';
+import { SAVE_ERROR, runSafely } from './notice';
 
 interface State {
   exercises: Exercise[];
@@ -140,7 +141,7 @@ export async function mountExerciseScreen(
     }
     form.addEventListener('submit', (event) => {
       event.preventDefault();
-      void submit();
+      runSafely(submit, SAVE_ERROR);
     });
     return form;
   }
@@ -166,7 +167,7 @@ export async function mountExerciseScreen(
               });
               const del = el('button', { type: 'button', className: 'danger' }, ['削除']);
               del.addEventListener('click', () => {
-                void remove(exercise);
+                runSafely(() => remove(exercise), SAVE_ERROR);
               });
               return el(
                 'li',

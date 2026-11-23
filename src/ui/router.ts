@@ -1,4 +1,5 @@
 import { el } from './dom';
+import { LOAD_ERROR, runSafely } from './notice';
 
 export interface Route {
   /** '#/record' の '/record' 部分 */
@@ -41,7 +42,7 @@ export function startRouter(app: HTMLElement, routes: readonly [Route, ...Route[
     const container = el('div');
     main.replaceChildren(container);
     window.scrollTo(0, 0);
-    void route.mount(container);
+    runSafely(() => route.mount(container), LOAD_ERROR);
   }
 
   window.addEventListener('hashchange', show);
