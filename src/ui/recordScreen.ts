@@ -3,15 +3,26 @@ import { formatShortDate, toLocalDateString } from '../domain/date';
 import { groupByBodyPart, type Exercise } from '../domain/exercise';
 import { findPreviousSession, suggestInitialValues } from '../domain/previousValues';
 import { createSetLog, nextSetNo, setsOf, validateSetInput, type SetLog } from '../domain/setLog';
-import type { ExerciseRepository, SetLogRepository } from '../storage/repository';
+import { isPersonalDay, type TrainingDay } from '../domain/trainingDay';
+import type {
+  ExerciseRepository,
+  SetLogRepository,
+  TrainingDayRepository,
+} from '../storage/repository';
 import { el } from './dom';
 import { SAVE_ERROR, runSafely } from './notice';
+import { personalToggle, savePersonalDay } from './personalToggle';
 
 /** タブを切り替えて戻っても保持する選択（再読み込みで初期化される）。 */
 const selection: { date: string; exerciseId: string | null } = {
   date: toLocalDateString(new Date()),
   exerciseId: null,
 };
+
+/** 記録画面で開く日付を決める（カレンダーの「この日を記録する」から使う）。 */
+export function selectRecordDate(date: string): void {
+  selection.date = date;
+}
 
 interface Draft {
   weight: string;
@@ -26,10 +37,15 @@ function formatSet(s: Pick<SetLog, 'weightKg' | 'reps'>): string {
 /** 記録画面を root に描画する。 */
 export async function mountRecordScreen(
   root: HTMLElement,
-  repos: { readonly exercises: ExerciseRepository; readonly sets: SetLogRepository },
+  repos: {
+    readonly exercises: ExerciseRepository;
+    readonly sets: SetLogRepository;
+    readonly days: TrainingDayRepository;
+  },
 ): Promise<void> {
   const exercises: Exercise[] = await repos.exercises.list();
   let sets: SetLog[] = await repos.sets.list();
+  let days: TrainingDay[] = await repos.days.list();
   let errors: readonly string[] = [];
   const draft: Draft = { weight: '', reps: '', note: '' };
 
@@ -103,9 +119,22 @@ export async function mountRecordScreen(
       render();
     });
 
+    const toggle = personalToggle(
+      'record-personal',
+      isPersonalDay(days, selection.date),
+      (checked) => {
+        runSafely(async () => {
+          await savePersonalDay(repos.days, selection.date, checked);
+          days = await repos.days.list();
+          render();
+        }, SAVE_ERROR);
+      },
+    );
+
     return el('div', { className: 'record-selectors' }, [
       el('label', { htmlFor: 'record-date' }, ['日付']),
       dateInput,
+      toggle,
       el('label', { htmlFor: 'record-exercise' }, ['種目']),
       select,
     ]);

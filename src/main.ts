@@ -1,6 +1,7 @@
 import './style.css';
 import type { Exercise } from './domain/exercise';
 import type { SetLog } from './domain/setLog';
+import type { TrainingDay } from './domain/trainingDay';
 import { STORES, createIndexedDbRepository, openDatabase } from './storage/indexedDb';
 import { requestPersistentStorage } from './storage/persist';
 import {
@@ -8,6 +9,7 @@ import {
   withChangeNotifier,
   type ExerciseRepository,
   type SetLogRepository,
+  type TrainingDayRepository,
 } from './storage/repository';
 import {
   createIndexedDbKeyValueStore,
@@ -19,6 +21,7 @@ import { registerServiceWorker } from './pwa/registerServiceWorker';
 import { createGitHubClient } from './sync/githubClient';
 import { runSync } from './sync/syncEngine';
 import { createSyncScheduler } from './sync/syncScheduler';
+import { mountCalendarScreen } from './ui/calendarScreen';
 import { mountExerciseScreen } from './ui/exerciseScreen';
 import { mountHistoryScreen } from './ui/historyScreen';
 import { showError, showPermanentWarning } from './ui/notice';
@@ -29,6 +32,7 @@ import { mountSettingsScreen } from './ui/settingsScreen';
 interface Storage {
   readonly exercises: ExerciseRepository;
   readonly sets: SetLogRepository;
+  readonly days: TrainingDayRepository;
   readonly settings: SettingsStore;
 }
 
@@ -40,6 +44,7 @@ async function openStorage(): Promise<Storage> {
     return {
       exercises: createIndexedDbRepository<Exercise>(db, STORES.exercises),
       sets: createIndexedDbRepository<SetLog>(db, STORES.sets),
+      days: createIndexedDbRepository<TrainingDay>(db, STORES.days),
       settings: createSettingsStore(createIndexedDbKeyValueStore(db)),
     };
   } catch (error) {
@@ -48,6 +53,7 @@ async function openStorage(): Promise<Storage> {
     return {
       exercises: createMemoryRepository<Exercise>(),
       sets: createMemoryRepository<SetLog>(),
+      days: createMemoryRepository<TrainingDay>(),
       settings: createSettingsStore(createMemoryKeyValueStore()),
     };
   }
@@ -78,6 +84,7 @@ async function main(): Promise<void> {
         // 同期での書き戻しは、変更通知を付けていない保存先に書く（同期が繰り返されないように）
         exercises: storage.exercises,
         sets: storage.sets,
+        days: storage.days,
         loadState: () => settings.getSyncState(),
         saveState: (state) => settings.saveSyncState(state),
         now: () => new Date().toISOString(),
@@ -107,10 +114,12 @@ async function main(): Promise<void> {
   const repos = {
     exercises: withChangeNotifier(storage.exercises, notify),
     sets: withChangeNotifier(storage.sets, notify),
+    days: withChangeNotifier(storage.days, notify),
   };
 
   router = startRouter(app, [
     { path: '/record', label: '記録', mount: (c) => mountRecordScreen(c, repos) },
+    { path: '/calendar', label: 'カレンダー', mount: (c) => mountCalendarScreen(c, repos) },
     { path: '/history', label: '履歴', mount: (c) => mountHistoryScreen(c, repos) },
     { path: '/exercises', label: '種目', mount: (c) => mountExerciseScreen(c, repos.exercises) },
     {

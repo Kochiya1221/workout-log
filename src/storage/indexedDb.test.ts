@@ -1,8 +1,8 @@
 import { IDBFactory } from 'fake-indexeddb';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createExercise, type Exercise } from '../domain/exercise';
 import { createSetLog, type SetLog } from '../domain/setLog';
-import { STORES, createIndexedDbRepository, openDatabase } from './indexedDb';
+import { DB_VERSION, STORES, createIndexedDbRepository, openDatabase } from './indexedDb';
 
 const T1 = '2026-01-01T00:00:00.000Z';
 const T2 = '2026-01-02T00:00:00.000Z';
@@ -85,5 +85,44 @@ describe('IndexedDB リポジトリ', () => {
     const broken = { setNo: 9 } as unknown as SetLog; // id がない
     await expect(sets.putMany([setLog('s1', 2), broken, setLog('s3', 3)])).rejects.toThrow();
     expect((await sets.list()).map((s) => s.id)).toEqual(['s0']);
+  });
+});
+
+describe('openDatabase（版の更新）', () => {
+  it('古い版を開いている接続があっても、相手が閉じれば開ける（失敗にしない）', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    // 古い版の DB を作って記録を1件入れ、接続を開いたままにする（別のタブ相当）
+    const old = await new Promise<IDBDatabase>((resolve, reject) => {
+      const req = factory.open('test-db', DB_VERSION - 1);
+      req.onupgradeneeded = () => {
+        req.result.createObjectStore('exercises', { keyPath: 'id' });
+        req.result.createObjectStore('sets', { keyPath: 'id' });
+      };
+      req.onsuccess = () => {
+        resolve(req.result);
+      };
+      req.onerror = () => {
+        reject(new Error('open failed'));
+      };
+    });
+    await new Promise<void>((resolve) => {
+      const tx = old.transaction('exercises', 'readwrite');
+      tx.objectStore('exercises').put(exercise('id-1', 'テスト種目A'));
+      tx.oncomplete = () => {
+        resolve();
+      };
+    });
+    // 別のタブは少し遅れて閉じる
+    old.onversionchange = () => {
+      setTimeout(() => {
+        old.close();
+      }, 20);
+    };
+
+    const db = await openDatabase('test-db', factory);
+    expect(db.version).toBe(DB_VERSION);
+    expect(db.objectStoreNames.contains('days')).toBe(true);
+    const list = await createIndexedDbRepository<Exercise>(db, STORES.exercises).list();
+    expect(list.map((e) => e.id)).toEqual(['id-1']);
   });
 });

@@ -436,3 +436,232 @@ button.danger {
   min-height: 36px;
   padding: 0 14px;
 }
+
+/* ---- タブ5つ ---- */
+.tab {
+  font-size: 0.8125rem;
+  padding: 0 2px;
+  white-space: nowrap;
+}
+
+/* ---- パーソナルの切り替え ---- */
+.personal-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.switch-input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 48px;
+  height: 28px;
+  border-radius: 14px;
+  background: #8886;
+  transition: background 0.15s;
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s;
+}
+
+.switch-input:checked + .switch {
+  background: var(--accent);
+}
+
+.switch-input:checked + .switch::after {
+  transform: translateX(20px);
+}
+
+.switch-input:focus-visible + .switch {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.personal-badge {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: normal;
+  vertical-align: middle;
+}
+
+/* ---- カレンダー ---- */
+.calendar-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.calendar-title {
+  flex: 1;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.month-nav {
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 0 14px;
+}
+
+.this-month {
+  padding: 0 10px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.weekday {
+  text-align: center;
+  font-size: 0.75rem;
+  color: #888;
+  padding: 4px 0;
+}
+
+.weekday.sun {
+  color: var(--danger);
+}
+
+.weekday.sat {
+  color: var(--accent);
+}
+
+.day-cell {
+  position: relative;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.day-cell.empty {
+  min-height: 0;
+}
+
+.day-cell.trained .day-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #2563eb33;
+  font-weight: bold;
+}
+
+.day-cell.personal .day-number {
+  background: var(--accent);
+  color: #fff;
+}
+
+.day-mark {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 0.625rem;
+  font-weight: bold;
+  color: var(--accent);
+}
+
+.day-cell.today {
+  border-color: var(--border);
+  font-weight: bold;
+}
+
+.day-cell.selected {
+  border: 2px solid var(--accent);
+}
+
+.calendar-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 0.8125rem;
+  color: #888;
+  margin: 8px 0 0;
+}
+
+.legend-trained::before,
+.legend-personal::before {
+  content: '';
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 4px;
+  border-radius: 50%;
+  vertical-align: -1px;
+}
+
+.legend-trained::before {
+  background: #2563eb33;
+}
+
+.legend-personal::before {
+  background: var(--accent);
+}
+
+.calendar-detail {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.calendar-detail h2 {
+  margin: 0;
+}
+
+.calendar-detail .empty {
+  margin: 0;
+}
+
+.day-summary {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.day-summary li {
+  display: grid;
+  gap: 2px;
+}
+
+.summary-name {
+  font-weight: bold;
+  overflow-wrap: anywhere;
+}
+
+.summary-sets {
+  color: #888;
+  overflow-wrap: anywhere;
+}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Exercise } from '../domain/exercise';
 import type { SetLog } from '../domain/setLog';
+import type { TrainingDay } from '../domain/trainingDay';
 import {
   decodeBase64Utf8,
   encodeBase64Utf8,
@@ -8,8 +9,10 @@ import {
   logPath,
   monthKey,
   monthOfLogPath,
+  parseDays,
   parseExercises,
   parseSets,
+  serializeDays,
   serializeExercises,
   serializeSets,
 } from './files';
@@ -109,6 +112,31 @@ describe('serialize / parse', () => {
     const withoutNote: Record<string, unknown> = { ...set('s', '2026-11-23') };
     delete withoutNote.note;
     expect(() => parseSets(JSON.stringify([withoutNote]), 'p')).toThrow();
+  });
+});
+
+describe('days.json', () => {
+  const day = (date: string, personal: boolean): TrainingDay => ({
+    id: date,
+    date,
+    personal,
+    createdAt: T1,
+    updatedAt: T1,
+    deletedAt: null,
+  });
+
+  it('日付順に並べ、往復しても同じ', () => {
+    const list = [day('2026-11-21', false), day('2026-11-20', true)];
+    const text = serializeDays(list);
+    expect(text.endsWith('\n')).toBe(true);
+    expect(parseDays(text)).toEqual([day('2026-11-20', true), day('2026-11-21', false)]);
+  });
+
+  it('不正な形は例外（id と日付の不一致、personal が真偽値でない）', () => {
+    expect(() => parseDays('{}')).toThrow('形式が正しくありません');
+    expect(() => parseDays(JSON.stringify([{ ...day('2026-11-20', true), id: 'x' }]))).toThrow('1 件目');
+    expect(() => parseDays(JSON.stringify([{ ...day('2026-11-20', true), personal: 'yes' }]))).toThrow();
+    expect(() => parseDays(JSON.stringify([day('2026-13-01', true)]))).toThrow();
   });
 });
 

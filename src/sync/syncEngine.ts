@@ -1,13 +1,17 @@
 import type { Exercise } from '../domain/exercise';
 import type { SetLog } from '../domain/setLog';
+import type { TrainingDay } from '../domain/trainingDay';
 import type { Repository } from '../storage/repository';
 import type { SyncState, SyncedFile } from '../storage/settingsStore';
 import {
+  DAYS_PATH,
   EXERCISES_PATH,
   monthKey,
   monthOfLogPath,
+  parseDays,
   parseExercises,
   parseSets,
+  serializeDays,
   serializeExercises,
   serializeSets,
 } from './files';
@@ -21,6 +25,7 @@ export interface SyncDeps {
   /** 変更通知を付けていない保存先（同期で書き戻しても自動同期が再度走らないように） */
   readonly exercises: Repository<Exercise>;
   readonly sets: Repository<SetLog>;
+  readonly days: Repository<TrainingDay>;
   readonly loadState: () => Promise<SyncState>;
   readonly saveState: (state: SyncState) => Promise<void>;
   readonly now: () => string;
@@ -141,6 +146,17 @@ export async function runSync(deps: SyncDeps): Promise<SyncResult> {
       parse: parseExercises,
       serialize: serializeExercises,
       writeLocal: (items) => deps.exercises.putMany(items),
+    }),
+  );
+
+  await record(
+    DAYS_PATH,
+    await syncFile(deps, {
+      path: DAYS_PATH,
+      loadLocal: () => deps.days.list(),
+      parse: parseDays,
+      serialize: serializeDays,
+      writeLocal: (items) => deps.days.putMany(items),
     }),
   );
 

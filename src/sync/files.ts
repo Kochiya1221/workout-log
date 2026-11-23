@@ -2,9 +2,11 @@ import { isBodyPart } from '../domain/bodyPart';
 import { isValidDateString } from '../domain/date';
 import type { Exercise } from '../domain/exercise';
 import type { SetLog } from '../domain/setLog';
+import type { TrainingDay } from '../domain/trainingDay';
 
 export const EXERCISES_PATH = 'exercises.json';
 export const LOGS_DIR = 'logs';
+export const DAYS_PATH = 'days.json';
 
 /** '2026-11-23' → '2026-11' */
 export function monthKey(date: string): string {
@@ -65,6 +67,23 @@ function setFields(s: SetLog): SetLog {
     updatedAt: s.updatedAt,
     deletedAt: s.deletedAt,
   };
+}
+
+function dayFields(d: TrainingDay): TrainingDay {
+  return {
+    id: d.id,
+    date: d.date,
+    personal: d.personal,
+    createdAt: d.createdAt,
+    updatedAt: d.updatedAt,
+    deletedAt: d.deletedAt,
+  };
+}
+
+/** トレーニング日を日付順・整形した JSON にする。 */
+export function serializeDays(list: readonly TrainingDay[]): string {
+  const sorted = [...list].sort((a, b) => cmp(a.date, b.date) || cmp(a.id, b.id));
+  return `${JSON.stringify(sorted.map(dayFields), null, 2)}\n`;
 }
 
 /** 種目を決まった順・整形した JSON にする（git の差分を読みやすくするため）。 */
@@ -159,6 +178,33 @@ export function parseSets(text: string, path: string): SetLog[] {
       weightKg: item.weightKg,
       reps: item.reps,
       note: item.note,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+      deletedAt: item.deletedAt,
+    });
+  });
+}
+
+/** days.json を読む。形が不正なら例外。 */
+export function parseDays(text: string): TrainingDay[] {
+  return parseArray(text, DAYS_PATH).map((item, i) => {
+    if (
+      !isRecord(item) ||
+      !isString(item.id) ||
+      !isString(item.date) ||
+      !isValidDateString(item.date) ||
+      item.id !== item.date ||
+      typeof item.personal !== 'boolean' ||
+      !isString(item.createdAt) ||
+      !isString(item.updatedAt) ||
+      !isNullableString(item.deletedAt)
+    ) {
+      throw new Error(`${DAYS_PATH} の ${String(i + 1)} 件目の形式が正しくありません`);
+    }
+    return dayFields({
+      id: item.id,
+      date: item.date,
+      personal: item.personal,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
       deletedAt: item.deletedAt,

@@ -1,7 +1,12 @@
 import { formatDateWithWeekday, formatShortDate, toLocalDateString } from '../domain/date';
 import { buildHistory, type HistoryEntry } from '../domain/history';
 import { deleteSetLog, updateSetLog, validateSetInput, type SetLog } from '../domain/setLog';
-import type { ExerciseRepository, SetLogRepository } from '../storage/repository';
+import { isPersonalDay } from '../domain/trainingDay';
+import type {
+  ExerciseRepository,
+  SetLogRepository,
+  TrainingDayRepository,
+} from '../storage/repository';
 import { el } from './dom';
 import { SAVE_ERROR, runSafely } from './notice';
 
@@ -16,10 +21,15 @@ interface EditState {
 /** 履歴画面を root に描画する。 */
 export async function mountHistoryScreen(
   root: HTMLElement,
-  repos: { readonly exercises: ExerciseRepository; readonly sets: SetLogRepository },
+  repos: {
+    readonly exercises: ExerciseRepository;
+    readonly sets: SetLogRepository;
+    readonly days: TrainingDayRepository;
+  },
 ): Promise<void> {
   const exercises = await repos.exercises.list();
   let sets: SetLog[] = await repos.sets.list();
+  const days = await repos.days.list();
   /** 編集中の行（同時に1行だけ） */
   let editing: EditState | null = null;
   const now = (): string => new Date().toISOString();
@@ -137,7 +147,12 @@ export async function mountHistoryScreen(
         ? [el('p', { className: 'empty' }, ['まだ記録がありません'])]
         : history.map((day) =>
             el('section', { className: 'history-day' }, [
-              el('h2', {}, [formatDateWithWeekday(day.date, today)]),
+              el('h2', {}, [
+                formatDateWithWeekday(day.date, today),
+                ...(isPersonalDay(days, day.date)
+                  ? [el('span', { className: 'personal-badge' }, ['パーソナル'])]
+                  : []),
+              ]),
               ...day.entries.map((entry) =>
                 el('div', { className: 'history-entry' }, [
                   el('h3', { className: entry.exerciseDeleted ? 'deleted' : '' }, [

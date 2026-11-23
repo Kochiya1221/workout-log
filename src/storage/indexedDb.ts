@@ -1,9 +1,9 @@
 import type { Repository } from './repository';
 
 export const DB_NAME = 'workout-log';
-/** 1: exercises / sets、2: settings を追加 */
-export const DB_VERSION = 2;
-export const STORES = { exercises: 'exercises', sets: 'sets' } as const;
+/** 1: exercises / sets、2: settings を追加、3: days を追加 */
+export const DB_VERSION = 3;
+export const STORES = { exercises: 'exercises', sets: 'sets', days: 'days' } as const;
 export type StoreName = (typeof STORES)[keyof typeof STORES];
 /** 端末だけに置く設定（同期設定・同期状態）。keyPath は 'key'。 */
 export const SETTINGS_STORE = 'settings';
@@ -71,8 +71,10 @@ export function openDatabase(
     request.onerror = () => {
       reject(request.error ?? new Error('IndexedDB を開けませんでした'));
     };
+    // 古い版を開いている他のタブがあると一時的に blocked になる。
+    // 相手は onversionchange で閉じるので、失敗にはせず success を待つ
     request.onblocked = () => {
-      reject(new Error('IndexedDB が他のタブで使用中のため開けませんでした'));
+      console.warn('IndexedDB: 他のタブが閉じるのを待っています');
     };
   });
 }

@@ -38,3 +38,8 @@ export function formatDateWithWeekday(date: string, today: string): string {
   const md = `${String(mo)}/${String(d)}(${weekday})`;
   return date.slice(0, 4) === today.slice(0, 4) ? md : `${String(y)}/${md}`;
 }
+
+/** (2026, 11) → '2026年11月' */
+export function formatYearMonth(year: number, month: number): string {
+  return `${String(year)}年${String(month)}月`;
+}

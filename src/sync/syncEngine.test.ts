@@ -1,10 +1,18 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { Exercise } from '../domain/exercise';
 import type { SetLog } from '../domain/setLog';
+import type { TrainingDay } from '../domain/trainingDay';
 import { createMemoryRepository, type Repository } from '../storage/repository';
 import { EMPTY_SYNC_STATE, type SyncState } from '../storage/settingsStore';
 import { createFakeGitHub, type FakeGitHub } from '../test/fakeGitHub';
-import { parseExercises, parseSets, serializeExercises, serializeSets } from './files';
+import {
+  parseDays,
+  parseExercises,
+  parseSets,
+  serializeDays,
+  serializeExercises,
+  serializeSets,
+} from './files';
 import { runSync, type SyncDeps } from './syncEngine';
 import { SyncError } from './syncError';
 
@@ -31,9 +39,14 @@ function set(id: string, date: string, setNo: number, weightKg: number, updatedA
   };
 }
 
+function day(date: string, personal: boolean, updatedAt = T1): TrainingDay {
+  return { id: date, date, personal, createdAt: T1, updatedAt, deletedAt: null };
+}
+
 interface Device {
   exercises: Repository<Exercise>;
   sets: Repository<SetLog>;
+  days: Repository<TrainingDay>;
   state: SyncState;
   deps: SyncDeps;
 }
@@ -45,6 +58,7 @@ function createDevice(): Device {
   const device: Device = {
     exercises: createMemoryRepository<Exercise>(),
     sets: createMemoryRepository<SetLog>(),
+    days: createMemoryRepository<TrainingDay>(),
     state: EMPTY_SYNC_STATE,
     deps: undefined as unknown as SyncDeps,
   };
@@ -52,6 +66,7 @@ function createDevice(): Device {
     client: github,
     exercises: device.exercises,
     sets: device.sets,
+    days: device.days,
     loadState: () => Promise.resolve(device.state),
     saveState: (s) => {
       device.state = s;
@@ -153,7 +168,7 @@ describe('runSync', () => {
     const second = await runSync(d.deps);
     expect(github.putCount).toBe(puts);
     expect(second.pushedFiles).toEqual([]);
-    expect(second.checkedFiles).toEqual(['exercises.json']);
+    expect(second.checkedFiles).toEqual(['exercises.json', 'days.json']);
   });
 
   it('前回の同期以降に変えた月だけを書き込む', async () => {
@@ -217,6 +232,43 @@ describe('runSync', () => {
     await expect(runSync(d.deps)).rejects.toMatchObject({ kind: 'invalidData' });
     expect(await d.exercises.list()).toEqual([exercise('ex-1', 'テスト種目A')]);
     expect(github.files.get('exercises.json')?.content).toBe('{ broken');
+  });
+
+  it('days.json: 初回に作成し、空の端末に復元し、新しい方を採用する', async () => {
+    const d1 = createDevice();
+    await d1.days.putMany([day('2026-11-20', true), day('2026-11-21', false)]);
+    const first = await runSync(d1.deps);
+    expect(first.pushedFiles).toContain('days.json');
+    expect(parseDays(github.files.get('days.json')?.content ?? '')).toEqual([
+      day('2026-11-20', true),
+      day('2026-11-21', false),
+    ]);
+
+    const d2 = createDevice();
+    await runSync(d2.deps);
+    expect((await d2.days.list()).map((d) => [d.date, d.personal])).toEqual([
+      ['2026-11-20', true],
+      ['2026-11-21', false],
+    ]);
+
+    // リモートで 11/21 をパーソナルに（新しい）、端末で 11/20 を自主トレに（さらに新しい）
+    github.write('days.json', serializeDays([day('2026-11-20', true), day('2026-11-21', true, T2)]));
+    await d1.days.put(day('2026-11-20', false, T3));
+    await runSync(d1.deps);
+    const merged = parseDays(github.files.get('days.json')?.content ?? '');
+    expect(merged.map((d) => [d.date, d.personal])).toEqual([
+      ['2026-11-20', false],
+      ['2026-11-21', true],
+    ]);
+    expect((await d1.days.list()).find((d) => d.date === '2026-11-21')?.personal).toBe(true);
+  });
+
+  it('days.json が壊れていたら端末を変えない', async () => {
+    github.write('days.json', JSON.stringify([{ id: '2026-11-20', date: '2026-11-21', personal: true }]));
+    const d = createDevice();
+    await d.days.put(day('2026-11-20', false));
+    await expect(runSync(d.deps)).rejects.toMatchObject({ kind: 'invalidData' });
+    expect(await d.days.list()).toEqual([day('2026-11-20', false)]);
   });
 
   it('月のファイルに別の月の記録があれば取り込まない', async () => {

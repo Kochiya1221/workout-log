@@ -87,6 +87,7 @@ describe('settingsStore', () => {
     });
     const db = await openDatabase('test-db', factory);
     expect(db.objectStoreNames.contains('settings')).toBe(true);
+    expect(db.objectStoreNames.contains('days')).toBe(true);
     const list = await createIndexedDbRepository<{ id: string }>(db, STORES.exercises).list();
     expect(list.map((e) => e.id)).toEqual(['id-1']);
   });
