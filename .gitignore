@@ -1,0 +1,21 @@
+# 依存パッケージ
+node_modules/
+
+# ビルド成果物
+dist/
+coverage/
+
+# ローカル設定・環境変数（トークン等を誤ってコミットしないため）
+*.local
+.env
+.env.*
+
+# エディタ・OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+
+# ログ
+*.log
+npm-debug.log*
