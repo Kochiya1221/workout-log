@@ -9,6 +9,9 @@
 body {
   margin: 0;
   padding: 16px;
+  padding-top: calc(16px + env(safe-area-inset-top));
+  /* 下部のタブバーに隠れないように */
+  padding-bottom: calc(80px + env(safe-area-inset-bottom));
 }
 
 #app {
@@ -122,4 +125,113 @@ button.danger {
   display: flex;
   gap: 8px;
   flex-shrink: 0;
+}
+
+/* ---- タブバー ---- */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  background: Canvas;
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  color: inherit;
+  text-decoration: none;
+  font-size: 0.9375rem;
+}
+
+.tab.active {
+  color: var(--accent);
+  font-weight: bold;
+}
+
+/* ---- 記録画面 ---- */
+.record-selectors {
+  display: grid;
+  gap: 8px;
+}
+
+.record-selectors label {
+  font-size: 0.875rem;
+}
+
+.previous {
+  margin: 16px 0;
+  font-size: 0.9375rem;
+  overflow-wrap: anywhere;
+}
+
+.record-form {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.record-form h2 {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.record-form label {
+  font-size: 0.875rem;
+}
+
+.record-numbers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.record-numbers > div {
+  display: grid;
+  gap: 4px;
+}
+
+.record-numbers input {
+  font-size: 1.25rem;
+  text-align: right;
+}
+
+.record-form .primary {
+  margin-top: 8px;
+}
+
+.day-sets ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.day-sets li {
+  display: flex;
+  gap: 12px;
+  padding: 6px 0;
+  align-items: baseline;
+}
+
+.set-no {
+  min-width: 1.5em;
+  color: #888;
+}
+
+.set-values {
+  font-weight: bold;
+}
+
+.set-note {
+  color: #888;
+  overflow-wrap: anywhere;
 }

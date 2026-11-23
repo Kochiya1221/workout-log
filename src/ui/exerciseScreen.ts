@@ -8,7 +8,8 @@ import {
   validateExerciseName,
   type Exercise,
 } from '../domain/exercise';
-import type { ExerciseRepository } from '../storage/exerciseRepository';
+import type { ExerciseRepository } from '../storage/repository';
+import { el } from './dom';
 
 interface State {
   exercises: Exercise[];
@@ -17,17 +18,6 @@ interface State {
   nameDraft: string;
   bodyPartDraft: BodyPart;
   error: string | null;
-}
-
-function el<K extends keyof HTMLElementTagNameMap>(
-  tag: K,
-  props: Partial<HTMLElementTagNameMap[K]> = {},
-  children: (Node | string)[] = [],
-): HTMLElementTagNameMap[K] {
-  const node = document.createElement(tag);
-  Object.assign(node, props);
-  node.append(...children);
-  return node;
 }
 
 /** 種目画面を root に描画する。 */
