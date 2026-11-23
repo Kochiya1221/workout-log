@@ -1,12 +1,15 @@
 import type { Repository } from './repository';
 
 export const DB_NAME = 'workout-log';
-export const DB_VERSION = 1;
+/** 1: exercises / sets、2: settings を追加 */
+export const DB_VERSION = 2;
 export const STORES = { exercises: 'exercises', sets: 'sets' } as const;
 export type StoreName = (typeof STORES)[keyof typeof STORES];
+/** 端末だけに置く設定（同期設定・同期状態）。keyPath は 'key'。 */
+export const SETTINGS_STORE = 'settings';
 
 /** IDBRequest の結果を Promise で返す。 */
-function requestToPromise<T>(request: IDBRequest<T>): Promise<T> {
+export function requestToPromise<T>(request: IDBRequest<T>): Promise<T> {
   return new Promise((resolve, reject) => {
     request.onsuccess = () => {
       resolve(request.result);
@@ -18,7 +21,7 @@ function requestToPromise<T>(request: IDBRequest<T>): Promise<T> {
 }
 
 /** トランザクションの完了（コミット）を待つ。失敗・中断なら reject。 */
-function transactionDone(tx: IDBTransaction): Promise<void> {
+export function transactionDone(tx: IDBTransaction): Promise<void> {
   return new Promise((resolve, reject) => {
     tx.oncomplete = () => {
       resolve();
@@ -47,10 +50,14 @@ export function openDatabase(
     }
     request.onupgradeneeded = () => {
       const db = request.result;
+      // 無いストアだけを作る（既存のデータはそのまま）
       for (const store of Object.values(STORES)) {
         if (!db.objectStoreNames.contains(store)) {
           db.createObjectStore(store, { keyPath: 'id' });
         }
+      }
+      if (!db.objectStoreNames.contains(SETTINGS_STORE)) {
+        db.createObjectStore(SETTINGS_STORE, { keyPath: 'key' });
       }
     };
     request.onsuccess = () => {

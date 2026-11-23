@@ -349,3 +349,81 @@ button.danger {
   padding: 0 10px;
   border: none;
 }
+
+/* ---- 設定画面 ---- */
+.settings-form {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.settings-form h2,
+.sync-status h2 {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.settings-field {
+  display: grid;
+  gap: 4px;
+}
+
+.settings-field label {
+  font-size: 0.875rem;
+}
+
+.settings-form .form-buttons {
+  flex-direction: column;
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #888;
+  overflow-wrap: anywhere;
+}
+
+.success {
+  margin: 0;
+  color: #16a34a;
+}
+
+.sync-status {
+  display: grid;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.sync-status p {
+  margin: 0;
+}
+
+.sync-status button {
+  justify-self: start;
+}
+
+.settings-help {
+  margin-top: 24px;
+}
+
+.settings-help summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.settings-help ol {
+  padding-left: 1.25em;
+  display: grid;
+  gap: 8px;
+  overflow-wrap: anywhere;
+}
+
+/* タブが4つでも収まるように */
+.tab {
+  font-size: 0.875rem;
+}

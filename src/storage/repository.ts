@@ -36,3 +36,23 @@ export function createMemoryRepository<T extends { readonly id: string }>(): Rep
     },
   };
 }
+
+/** 保存に成功したら onChange を呼ぶ保存先にする（自動同期のきっかけ用）。 */
+export function withChangeNotifier<T extends { readonly id: string }>(
+  repo: Repository<T>,
+  onChange: () => void,
+): Repository<T> {
+  return {
+    list: () => repo.list(),
+    async put(item) {
+      await repo.put(item);
+      onChange();
+    },
+    async putMany(items) {
+      await repo.putMany(items);
+      if (items.length > 0) {
+        onChange();
+      }
+    },
+  };
+}
