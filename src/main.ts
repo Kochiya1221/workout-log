@@ -3,6 +3,7 @@ import type { Exercise } from './domain/exercise';
 import type { SetLog } from './domain/setLog';
 import { createMemoryRepository } from './storage/repository';
 import { mountExerciseScreen } from './ui/exerciseScreen';
+import { mountHistoryScreen } from './ui/historyScreen';
 import { mountRecordScreen } from './ui/recordScreen';
 import { startRouter } from './ui/router';
 
@@ -19,5 +20,6 @@ const repos = {
 
 startRouter(app, [
   { path: '/record', label: '記録', mount: (c) => mountRecordScreen(c, repos) },
+  { path: '/history', label: '履歴', mount: (c) => mountHistoryScreen(c, repos) },
   { path: '/exercises', label: '種目', mount: (c) => mountExerciseScreen(c, repos.exercises) },
 ]);

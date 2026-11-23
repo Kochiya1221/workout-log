@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatShortDate, isValidDateString, toLocalDateString } from './date';
+import { formatDateWithWeekday, formatShortDate, isValidDateString, toLocalDateString } from './date';
 
 describe('toLocalDateString', () => {
   it('ローカル日付を 0 埋めで返す', () => {
@@ -35,5 +35,16 @@ describe('formatShortDate', () => {
   it('月/日（0 埋めなし）', () => {
     expect(formatShortDate('2026-11-20')).toBe('11/20');
     expect(formatShortDate('2026-01-05')).toBe('1/5');
+  });
+});
+
+describe('formatDateWithWeekday', () => {
+  it('同じ年は月/日(曜日)', () => {
+    expect(formatDateWithWeekday('2026-11-23', '2026-12-01')).toBe('11/23(月)');
+    expect(formatDateWithWeekday('2026-01-04', '2026-12-01')).toBe('1/4(日)');
+  });
+
+  it('違う年は年/月/日(曜日)', () => {
+    expect(formatDateWithWeekday('2025-12-31', '2026-01-01')).toBe('2025/12/31(水)');
   });
 });

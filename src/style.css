@@ -235,3 +235,76 @@ button.danger {
   color: #888;
   overflow-wrap: anywhere;
 }
+
+/* ---- 履歴画面 ---- */
+.history-day h2 {
+  margin-top: 24px;
+}
+
+.history-entry h3 {
+  font-size: 0.9375rem;
+  margin: 12px 0 4px;
+  overflow-wrap: anywhere;
+}
+
+.history-entry h3.deleted {
+  color: #888;
+}
+
+.history-entry ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.history-entry li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.history-set-body {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.history-entry .actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.history-edit {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 0;
+}
+
+.history-edit-fields {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.history-edit-fields label {
+  display: grid;
+  gap: 4px;
+  font-size: 0.875rem;
+}
+
+.history-edit-fields .field-note,
+.history-edit-fields .form-buttons,
+.history-edit-fields .error {
+  grid-column: 1 / -1;
+}
+
+.history-edit-fields .form-buttons {
+  margin-top: 0;
+}

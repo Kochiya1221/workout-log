@@ -25,3 +25,16 @@ export function formatShortDate(value: string): string {
   const [, mo, d] = value.split('-');
   return `${String(Number(mo))}/${String(Number(d))}`;
 }
+
+const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'] as const;
+
+/**
+ * 履歴用の日付表記。today と同じ年なら '11/23(月)'、違う年なら '2025/11/23(日)'。
+ * 曜日は UTC で計算し、端末のタイムゾーンの影響を受けない。
+ */
+export function formatDateWithWeekday(date: string, today: string): string {
+  const [y, mo, d] = date.split('-').map(Number);
+  const weekday = WEEKDAYS[new Date(Date.UTC(y ?? 0, (mo ?? 1) - 1, d ?? 1)).getUTCDay()] ?? '';
+  const md = `${String(mo)}/${String(d)}(${weekday})`;
+  return date.slice(0, 4) === today.slice(0, 4) ? md : `${String(y)}/${md}`;
+}

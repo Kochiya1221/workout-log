@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import { suggestInitialValues } from './previousValues';
 import {
   createSetLog,
+  deleteSetLog,
   nextSetNo,
   setsOf,
   toHalfWidthNumber,
+  updateSetLog,
   validateSetInput,
   type SetFormInput,
   type SetLog,
@@ -134,5 +137,52 @@ describe('setsOf / nextSetNo', () => {
   it('セットがなければ 1', () => {
     expect(nextSetNo(sets, 'ex-1', '2026-11-24')).toBe(1);
     expect(nextSetNo([], 'ex-1', '2026-11-23')).toBe(1);
+  });
+});
+
+describe('updateSetLog', () => {
+  it('重量・回数・メモ・updatedAt だけを変え、元は変えない', () => {
+    const original = set('s1', 'ex-1', '2026-11-23', 2, { note: '前のメモ' });
+    const updated = updateSetLog(original, { weightKg: 62.5, reps: 8, note: '' }, T2);
+    expect(updated).toEqual({ ...original, weightKg: 62.5, reps: 8, note: '', updatedAt: T2 });
+    expect(original.weightKg).toBe(50);
+    expect(original.updatedAt).toBe(T1);
+  });
+});
+
+describe('deleteSetLog', () => {
+  const day = '2026-11-23';
+  const sets = [
+    set('s1', 'ex-1', day, 1),
+    set('s2', 'ex-1', day, 2),
+    set('s3', 'ex-1', day, 3, { weightKg: 60, reps: 9 }),
+    set('x1', 'ex-1', day, 4, { deletedAt: T1 }),
+    set('o1', 'ex-2', day, 3),
+    set('o2', 'ex-1', '2026-11-22', 3),
+  ];
+
+  it('途中のセットを削除すると、後ろのセットの番号を詰める', () => {
+    const changed = deleteSetLog(sets, 's2', T2);
+    expect(changed).toEqual([
+      { ...sets[1], deletedAt: T2, updatedAt: T2 },
+      { ...sets[2], setNo: 2, updatedAt: T2 },
+    ]);
+  });
+
+  it('最後のセットの削除は他に影響しない', () => {
+    expect(deleteSetLog(sets, 's3', T2).map((s) => s.id)).toEqual(['s3']);
+  });
+
+  it('存在しない id・削除済みの id は空配列', () => {
+    expect(deleteSetLog(sets, 'nope', T2)).toEqual([]);
+    expect(deleteSetLog(sets, 'x1', T2)).toEqual([]);
+  });
+
+  it('削除後の次のセット番号と前回値の引き継ぎは、詰めた番号で動く', () => {
+    const changed = deleteSetLog(sets, 's2', T2);
+    const after = sets.map((s) => changed.find((c) => c.id === s.id) ?? s);
+    expect(nextSetNo(after, 'ex-1', day)).toBe(3);
+    // 翌日の2セット目は、詰めて2になった元3セット目の値を引き継ぐ
+    expect(suggestInitialValues(after, 'ex-1', '2026-11-24', 2)).toEqual({ weightKg: 60, reps: 9 });
   });
 });

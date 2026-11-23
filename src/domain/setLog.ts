@@ -112,3 +112,34 @@ export function setsOf(sets: readonly SetLog[], exerciseId: string, date: string
 export function nextSetNo(sets: readonly SetLog[], exerciseId: string, date: string): number {
   return setsOf(sets, exerciseId, date).reduce((max, s) => Math.max(max, s.setNo), 0) + 1;
 }
+
+/** 重量・回数・メモを変更した新しいオブジェクトを返す（日付・種目・セット番号は変えない）。 */
+export function updateSetLog(
+  set: SetLog,
+  values: Pick<SetValues, 'weightKg' | 'reps' | 'note'>,
+  now: string,
+): SetLog {
+  return {
+    ...set,
+    weightKg: values.weightKg,
+    reps: values.reps,
+    note: values.note,
+    updatedAt: now,
+  };
+}
+
+/**
+ * セットを削除し、同じ日・同じ種目で後ろにあるセットの番号を詰める。
+ * 保存が必要な変更分（削除したセットと、番号が変わったセット）を返す。
+ * 対象が見つからない、または削除済みなら空配列。
+ */
+export function deleteSetLog(sets: readonly SetLog[], targetId: string, now: string): SetLog[] {
+  const target = sets.find((s) => s.id === targetId);
+  if (!target || target.deletedAt !== null) {
+    return [];
+  }
+  const shifted = setsOf(sets, target.exerciseId, target.date)
+    .filter((s) => s.setNo > target.setNo)
+    .map((s) => ({ ...s, setNo: s.setNo - 1, updatedAt: now }));
+  return [{ ...target, deletedAt: now, updatedAt: now }, ...shifted];
+}
